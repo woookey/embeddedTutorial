@@ -3,7 +3,7 @@ CC = arm-none-eabi-gcc
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
 
-CFLAGS = -Wall -g --specs=nosys.specs -mthumb -mcpu=cortex-m4 -Os
+CFLAGS = -Wall -g --specs=nosys.specs -mcpu=cortex-m4 -Os
 CFLAGS += -DSTM32F407xx
 LFLAGS =  -L../Linker -TSTM32F407VGTx_FLASH.ld 
 
