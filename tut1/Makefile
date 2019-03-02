@@ -5,7 +5,7 @@ OBJCOPY = arm-none-eabi-objcopy
 
 CFLAGS = -Wall -g --specs=nosys.specs -mthumb -mcpu=cortex-m4 -Os
 CFLAGS += -DSTM32F407xx
-LFLAGS = -TSTM32F407VGTx_FLASH.ld -L../Linker
+LFLAGS =  -L../Linker -TSTM32F407VGTx_FLASH.ld 
 
 INC = -I../CMSIS/Device/ST/STM32F4xx/Include
 INC += -I../CMSIS/Include
@@ -22,7 +22,7 @@ all: $(DEPENDENCIES)
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 	
 %.o : %.s
-	$(CC) $(CFLAGS) $(INC) -c $< -o $@
+	$(AS) $(INC) -c $< -o $@
 	
 reflash:
 	st-flash write $(TARGET).bin 0x8000000
