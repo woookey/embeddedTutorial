@@ -1,20 +1,22 @@
 CC = arm-none-eabi-gcc
 AS = arm-none-eabi-as
-CFLAGS = -c -mcpu=cortex-m4 -mthumb
-LD=arm-none-eabi-ld
-LIBS = -L/opt/gcc-arm-none-eabi-6-2017-q2-update/arm-none-eabi/lib/thumb/ \
--L/opt/gcc-arm-none-eabi-6-2017-q2-update/lib/gcc/arm-none-eabi/6.3.1/thumb/
-LSCRIPT=-TSTM32F407VGTx_FLASH.ld
-CRT0 = /opt/gcc-arm-none-eabi-6-2017-q2-update/arm-none-eabi/lib/crt0.o
+CFLAGS = -Wall -g --specs=nosys.specs -mthumb -mcpu=cortex-m4
+CFLAGS += -DSTM32F407xx
+LFLAGS = -TSTM32F407VGTx_FLASH.ld -LLinker
 
-build: main.o startup.o
-	$(LD) $(LIBS) $(LSCRIPT) $(CRT0) main.o startup.o
+INC = -I./CMSIS/Device/ST/STM32F4xx/Include
+INC += -I./CMSIS/Include
 
-main.o: main.c
-	$(CC) $(CFLAGS) main.c -o main.o
+DEPENDENCIES = main.o 
+DEPENDENCIES += startup_stm32f407xx.o
+DEPENDENCIES += system_stm32f4xx.o
 
-startup.o: startup_stm32f407xx.s
-	$(AS) $(CFLAGS) startup_stm32f407xx.s -o startup.o
+
+all: $(DEPENDENCIES)
+	$(CC) $(CFLAGS) $(DEPENDENCIES) $(LFLAGS) -o tut1.axf 
+	
+%.o : %.c
+	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
 clean:
-	rm -rf *.o
+	rm -rf *.o *.axf *.elf

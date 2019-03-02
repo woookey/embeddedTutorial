@@ -1,8 +1,15 @@
-void SystemInit(void);
+#include <stm32f407xx.h>
+
+static void switchLEDOn(void);
 
 int main(void)
 {
+	switchLEDOn();
+	while(1);
 	return 0;
 }
 
-void SystemInit(void){}
+static void switchLEDOn(void)
+{
+
+}
