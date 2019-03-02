@@ -1,22 +1,31 @@
+TARGET = tut1
 CC = arm-none-eabi-gcc
 AS = arm-none-eabi-as
-CFLAGS = -Wall -g --specs=nosys.specs -mthumb -mcpu=cortex-m4
-CFLAGS += -DSTM32F407xx
-LFLAGS = -TSTM32F407VGTx_FLASH.ld -LLinker
+OBJCOPY = arm-none-eabi-objcopy
 
-INC = -I./CMSIS/Device/ST/STM32F4xx/Include
-INC += -I./CMSIS/Include
+CFLAGS = -Wall -g --specs=nosys.specs -mthumb -mcpu=cortex-m4 -Os
+CFLAGS += -DSTM32F407xx
+LFLAGS = -TSTM32F407VGTx_FLASH.ld -L../Linker
+
+INC = -I../CMSIS/Device/ST/STM32F4xx/Include
+INC += -I../CMSIS/Include
 
 DEPENDENCIES = main.o 
 DEPENDENCIES += startup_stm32f407xx.o
 DEPENDENCIES += system_stm32f4xx.o
 
-
 all: $(DEPENDENCIES)
-	$(CC) $(CFLAGS) $(DEPENDENCIES) $(LFLAGS) -o tut1.axf 
+	$(CC) $(CFLAGS) $(DEPENDENCIES) $(INC) $(LFLAGS) -o $(TARGET).axf;
+	$(OBJCOPY) -O binary tut1.axf tut1.bin
 	
 %.o : %.c
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
+	
+%.o : %.s
+	$(CC) $(CFLAGS) $(INC) -c $< -o $@
+	
+reflash:
+	st-flash write $(TARGET).bin 0x8000000
 
 clean:
-	rm -rf *.o *.axf *.elf
+	rm -rf *.o *.axf *.bin
