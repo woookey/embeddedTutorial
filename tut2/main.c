@@ -31,3 +31,6 @@ static void switchLEDOff(void) {
     // Set GPIOD Pin 12 to Output and switch it on
     GPIOD->ODR = 0;
 }
+void SysTick_Handler(void) {
+    HAL_IncTick();
+}
