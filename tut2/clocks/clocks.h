@@ -3,4 +3,4 @@
 
 void clocks_initialise(void);
 
-#endif //WEBSITE_CLOCKS_H
+#endif
