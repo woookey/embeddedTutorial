@@ -15,7 +15,6 @@ DEPENDENCIES = main.o
 DEPENDENCIES += startup_stm32f407xx.o
 DEPENDENCIES += system_stm32f4xx.o
 DEPENDENCIES += clocks/clocks.o
-DEPENDENCIES += gpio/gpio.o
 DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
 DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
@@ -35,4 +34,5 @@ reflash:
 	st-flash write $(TARGET).bin 0x8000000
 
 clean:
-	rm -rf *.o *.axf *.bin
+	rm -f *.axf *.bin
+	find ../ -type f -name '*.o' -delete

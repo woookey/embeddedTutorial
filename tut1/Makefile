@@ -28,4 +28,7 @@ reflash:
 	st-flash write $(TARGET).bin 0x8000000
 
 clean:
-	rm -rf *.o *.axf *.bin
+	rm -f *.axf *.bin
+	find ../ -type f -name '*.o' -delete
+
+
