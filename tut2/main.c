@@ -3,24 +3,37 @@
 
 #include <stdbool.h>
 
+volatile uint16_t time_counter = 0;
+static GPIO_InitTypeDef led_gpio = {
+    .Pin = GPIO_PIN_12,
+    .Mode = GPIO_MODE_OUTPUT_PP,
+    .Pull = GPIO_PULLDOWN,
+    .Speed = GPIO_SPEED_FREQ_HIGH,
+};
+
+static GPIO_InitTypeDef measure_gpio = {
+    .Pin = GPIO_PIN_1,
+    .Mode = GPIO_MODE_OUTPUT_PP,
+    .Pull = GPIO_PULLDOWN,
+    .Speed = GPIO_SPEED_FREQ_HIGH,
+};
+
 int main(void)
 {
-    /// Enable PLL, and clock for an LED
+    /// enable PLL, and clock for an LED
     clocks_initialise();
 
-    GPIO_InitTypeDef led_gpio = {
-        .Pin = GPIO_PIN_12,
-        .Mode = GPIO_MODE_OUTPUT_PP,
-        .Pull = GPIO_PULLDOWN,
-        .Speed = GPIO_SPEED_FREQ_HIGH,
-    };
+    /// initialise LED GPIO (D12)
     HAL_GPIO_Init(GPIOD, &led_gpio);
-	while(1) {
-        HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
-        HAL_Delay(500);
-	}
+    HAL_GPIO_Init(GPIOC, &measure_gpio);
+	while(1) {}
 }
 
 void SysTick_Handler(void) {
-    HAL_IncTick();
+    /// toggle C1 to measure SysTick frequency on the scope
+    HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
+    if (++time_counter == 500) {
+        HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
+        time_counter = 0;
+    }
 }

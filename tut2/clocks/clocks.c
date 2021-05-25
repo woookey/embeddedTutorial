@@ -1,8 +1,8 @@
 #include "clocks.h"
 #include "stm32f4xx_hal_rcc.h"
+#include "stm32f4xx_hal_cortex.h"
 
-static RCC_ClkInitTypeDef rccClkInstance =
-{
+static RCC_ClkInitTypeDef rccClkInstance = {
     .ClockType = RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2,
     .SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK,
     .AHBCLKDivider = RCC_SYSCLK_DIV1,
@@ -17,16 +17,26 @@ static RCC_OscInitTypeDef clock_setup = {
         .PLLState = RCC_PLL_ON,
         .PLLSource = RCC_PLLSOURCE_HSE,
         .PLLM = 8,
-        .PLLN = 336,
+        .PLLN = 100,
         .PLLP = RCC_PLLP_DIV2,
     }
 };
 
 void clocks_initialise(void) {
+    /// configure oscillators
     HAL_RCC_OscConfig(&clock_setup);
     HAL_RCC_ClockConfig(&rccClkInstance, 5);
 
-    /// enable Port D
+    /// configure SysTick
+    HAL_NVIC_DisableIRQ(SysTick_IRQn);
+    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+    HAL_NVIC_EnableIRQ(SysTick_IRQn);
+
+    /// enable Port D (for GPIO D12 - LED)
     __HAL_RCC_GPIOD_CLK_ENABLE();
+
+    /// enable Port C (for GPIO C1 - measuring SysTick)
+    __HAL_RCC_GPIOC_CLK_ENABLE();
 }
 
