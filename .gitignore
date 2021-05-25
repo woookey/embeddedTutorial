@@ -1,0 +1,7 @@
+*.o
+*.cproject
+*.project
+*.settings
+*.axf
+*.bin
+.idea/
