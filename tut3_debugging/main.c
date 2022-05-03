@@ -26,13 +26,13 @@ int main(void)
     /// initialise LED GPIO (D12)
     HAL_GPIO_Init(GPIOD, &led_gpio);
     HAL_GPIO_Init(GPIOC, &measure_gpio);
-	while(1) {}
+    while(1) {}
 }
 
 void SysTick_Handler(void) {
     /// toggle C1 to measure SysTick frequency on the scope
     HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
-    if (++time_counter == 500) {
+    if (++time_counter == 100) {
         HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
         time_counter = 0;
     }
