@@ -1,4 +1,4 @@
-TARGET = tut2
+TARGET = tut3
 CC = arm-none-eabi-gcc
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
@@ -23,16 +23,39 @@ DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
 all: $(DEPENDENCIES)
 	$(CC) $(CFLAGS) $(DEPENDENCIES) $(INC) $(LFLAGS) -o $(TARGET).axf;
 	$(OBJCOPY) -O binary $(TARGET).axf $(TARGET).bin
-	
+
 %.o : %.c
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 	
 %.o : %.s
 	$(AS) $(INC) -c $< -o $@
 	
-reflash:
+stlink_texane_reflash:
 	st-flash write $(TARGET).bin 0x8000000
+
+stlink_v2_connect:
+	openocd --file $(shell pwd)/../tools/stlink-v2-swd.cfg
+
+stlink_v2_reflash:
+	openocd --file $(shell pwd)/../tools/stlink-v2-swd.cfg -c "program tut3.bin 0x08000000 exit"
+
+stlink_v2_1_connect:
+	openocd --file $(shell pwd)/../tools/stlink-v2-1-swd.cfg
+
+stlink_v2_1_reflash:
+	openocd --file $(shell pwd)/../tools/stlink-v2-1-swd.cfg -c "program tut3.bin 0x08000000 exit"
+
+olimex_connect:
+	openocd --file $(shell pwd)/../tools/olimex-jtag.cfg
+
+olimex_reflash:
+	openocd --file $(shell pwd)/../tools/olimex-jtag.cfg -c "program tut3.bin 0x08000000 exit"
+
+olimex_bs:
+	openocd --file $(shell pwd)/../tools/stm32f4discovery_olimex_bs.cfg
 
 clean:
 	rm -f *.axf *.bin
 	find ../ -type f -name '*.o' -delete
+
+.PHONY: clean all
