@@ -40,3 +40,8 @@ void clocks_initialise(void) {
     __HAL_RCC_GPIOC_CLK_ENABLE();
 }
 
+void clocks_system_reset(void) {
+    /// reset the system
+    HAL_NVIC_SystemReset();
+}
+

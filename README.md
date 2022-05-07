@@ -1,4 +1,5 @@
 # Embedded Programming and STM32F4 Tutorial
+
 This tutorial covers embedded software development using GNU tools. It should provide a detailed introduction
 into the whole process of development from scratch including toolchain, development techniques, debugging, testing
 and simulation. The discovery board with an STM32F407VG microcontroller from STM is the target hardware. This repository
