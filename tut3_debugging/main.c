@@ -2,20 +2,23 @@
 #include "stm32f4xx_hal.h"
 
 #include <stdbool.h>
+#include <stddef.h>
+
+#define RESERVED_MEMORY (*(uint32_t*)0x08100000)
 
 volatile uint16_t time_counter = 0;
 static GPIO_InitTypeDef led_gpio = {
-    .Pin = GPIO_PIN_12,
-    .Mode = GPIO_MODE_OUTPUT_PP,
-    .Pull = GPIO_PULLDOWN,
-    .Speed = GPIO_SPEED_FREQ_HIGH,
+        .Pin = GPIO_PIN_12,
+        .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_FREQ_HIGH,
 };
 
 static GPIO_InitTypeDef measure_gpio = {
-    .Pin = GPIO_PIN_1,
-    .Mode = GPIO_MODE_OUTPUT_PP,
-    .Pull = GPIO_PULLDOWN,
-    .Speed = GPIO_SPEED_FREQ_HIGH,
+        .Pin = GPIO_PIN_1,
+        .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_FREQ_HIGH,
 };
 
 int main(void)
@@ -36,4 +39,11 @@ void SysTick_Handler(void) {
         HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
         time_counter = 0;
     }
+    /// forbidden write to reserved memory
+    /// uncomment line below to inject a bug
+    /// RESERVED_MEMORY = NULL;
+}
+
+void HardFault_Handler(void) {
+    clocks_system_reset();
 }
