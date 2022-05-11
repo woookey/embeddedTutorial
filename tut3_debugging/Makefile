@@ -51,9 +51,6 @@ olimex_connect:
 olimex_reflash:
 	openocd --file $(shell pwd)/../tools/olimex-jtag.cfg -c "program tut3.bin 0x08000000 exit"
 
-olimex_bs:
-	openocd --file $(shell pwd)/../tools/stm32f4discovery_olimex_bs.cfg
-
 clean:
 	rm -f *.axf *.bin
 	find ../ -type f -name '*.o' -delete
