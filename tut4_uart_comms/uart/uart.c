@@ -30,5 +30,5 @@ bool uart_initialise(void) {
 }
 
 void uart_send_data(uint8_t* data, uint8_t data_size) {
-    HAL_UART_Transmit(&uart2_instance, data, data_size, 10);
+    HAL_UART_Transmit(&uart2_instance, data, data_size, 1);
 }

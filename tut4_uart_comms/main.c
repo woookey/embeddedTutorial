@@ -39,8 +39,8 @@ static GPIO_InitTypeDef uart2_rx_gpio = {
 };
 
 //static char msg[] = "SAMPLE_DATA\n\r";
-//static char msg[] = {0b10010110};
-static char msg[] = {'A'};
+static char msg[] = {0b01100011};
+//static char msg[] = {'A'};
 
 int main(void)
 {
