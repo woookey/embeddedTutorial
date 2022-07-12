@@ -13,7 +13,7 @@ static const UART_InitTypeDef uart2_config = {
         .BaudRate = (uint32_t)115200,
         .WordLength = UART_WORDLENGTH_8B,
         .StopBits = UART_STOPBITS_1,
-        .Parity = UART_PARITY_EVEN,
+        .Parity = UART_PARITY_NONE,//UART_PARITY_EVEN
         .Mode = UART_MODE_TX_RX,
         .OverSampling = UART_OVERSAMPLING_16
 };

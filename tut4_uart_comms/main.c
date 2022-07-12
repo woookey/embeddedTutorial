@@ -38,9 +38,7 @@ static GPIO_InitTypeDef uart2_rx_gpio = {
     .Alternate = GPIO_AF7_USART2
 };
 
-//static char msg[] = "SAMPLE_DATA\n\r";
-static char msg[] = {0b01100011};
-//static char msg[] = {'A'};
+static char msg[] = {"Disco says hello!\r\n"};
 
 int main(void)
 {
