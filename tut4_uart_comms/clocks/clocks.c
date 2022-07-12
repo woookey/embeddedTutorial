@@ -33,15 +33,6 @@ void clocks_initialise(void) {
     HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
     HAL_NVIC_EnableIRQ(SysTick_IRQn);
 
-/*    volatile uint32_t clock_sysclk = HAL_RCC_GetSysClockFreq();
-    volatile uint32_t clock_hclk = HAL_RCC_GetHCLKFreq();
-    volatile uint32_t clock_pclk1 = HAL_RCC_GetPCLK1Freq();
-    volatile uint32_t clock_pclk2 = HAL_RCC_GetPCLK2Freq();
-    (void)clock_sysclk;
-    (void)clock_hclk;
-    (void)clock_pclk1;
-    (void)clock_pclk2;*/
-
     /// enable Port D (for GPIO D12 - LED)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
