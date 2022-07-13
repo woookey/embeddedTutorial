@@ -1,4 +1,4 @@
-#include "uart.h"
+#include "comms.h"
 
 #include "stm32f407xx.h"
 #include "stm32f4xx_ll_usart.h"
@@ -22,11 +22,11 @@ static UART_HandleTypeDef uart2_instance = {
         .Instance = USART2,
         .Init = uart2_config,
 };
+
 static uint8_t bytes_left_to_send = 0;
-//static uint8_t tx_data_size = 0;
 static uint8_t* curr_data = NULL;
 
-bool uart_initialise(void) {
+bool comms_initialise(void) {
     bool init_result;
     init_result = (bool)HAL_UART_Init(&uart2_instance);
     //__HAL_UART_ENABLE_IT(&uart2_instance, UART_IT_TXE);
@@ -35,11 +35,15 @@ bool uart_initialise(void) {
     return (init_result == HAL_OK);
 }
 
-void uart_send_data(uint8_t* data, uint8_t data_size) {
+void comms_send_data(uint8_t* data, uint8_t data_size) {
     curr_data = data;
     bytes_left_to_send = data_size;
     CLEAR_BIT(uart2_instance.Instance->SR, USART_SR_TC);
     SET_BIT(uart2_instance.Instance->CR1, USART_CR1_TXEIE);
+}
+
+void comms_handle_data(void) {
+
 }
 
 void USART2_IRQHandler(void) {

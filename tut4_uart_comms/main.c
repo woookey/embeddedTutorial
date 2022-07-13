@@ -1,5 +1,5 @@
 #include "clocks/clocks.h"
-#include "uart/uart.h"
+#include "comms/comms.h"
 #include "stm32f4xx_hal.h"
 
 #include <stdbool.h>
@@ -50,19 +50,18 @@ int main(void)
     clocks_initialise();
     HAL_GPIO_Init(GPIOA, &uart2_tx_gpio);
     HAL_GPIO_Init(GPIOA, &uart2_rx_gpio);
-    uart_initialise();
+    comms_initialise();
 
     /// initialise relevant GPIOs
     HAL_GPIO_Init(GPIOD, &led_gpio);
     HAL_GPIO_Init(GPIOC, &measure_gpio);
 
-
     while(1) {
         if ((time_counter == TASKS_FREQUENCY_THRESHOLD) & !background_processed) {
             /// run all background tasks
             HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
-            uart_send_data((uint8_t*)&msg, sizeof(msg));
-            ///uart_handle_data();
+            comms_send_data((uint8_t*)&msg, sizeof(msg));
+            comms_handle_data();
             background_processed = true;
         }
     }
