@@ -9,22 +9,29 @@
 #include "stm32f4xx_hal_rcc.h"
 #include "stm32f4xx_hal_cortex.h"
 
+typedef struct {
+    uint8_t bytes_left_to_send;
+    uint8_t* curr_data;
+}comms_t;
+
+static comms_t comms_data = {
+    .bytes_left_to_send = 0,
+    .curr_data = NULL
+};
+
 static const UART_InitTypeDef uart1_config = {
-        .BaudRate = (uint32_t)115200,
-        .WordLength = UART_WORDLENGTH_8B,
-        .StopBits = UART_STOPBITS_1,
-        .Parity = UART_PARITY_NONE,//UART_PARITY_EVEN
-        .Mode = UART_MODE_TX_RX,
-        .OverSampling = UART_OVERSAMPLING_16
+    .BaudRate = (uint32_t)115200,
+    .WordLength = UART_WORDLENGTH_8B,
+    .StopBits = UART_STOPBITS_1,
+    .Parity = UART_PARITY_NONE,
+    .Mode = UART_MODE_TX_RX,
+    .OverSampling = UART_OVERSAMPLING_16
 };
 
 static UART_HandleTypeDef uart1_instance = {
-        .Instance = USART1,
-        .Init = uart1_config,
+    .Instance = USART1,
+    .Init = uart1_config,
 };
-
-static uint8_t bytes_left_to_send = 0;
-static uint8_t* curr_data = NULL;
 
 bool comms_initialise(void) {
     bool init_result;
@@ -34,8 +41,8 @@ bool comms_initialise(void) {
 }
 
 void comms_send_data(uint8_t* data, uint8_t data_size) {
-    curr_data = data;
-    bytes_left_to_send = data_size;
+    comms_data.curr_data = data;
+    comms_data.bytes_left_to_send = data_size;
     CLEAR_BIT(uart1_instance.Instance->SR, USART_SR_TC);
     SET_BIT(uart1_instance.Instance->CR1, USART_CR1_TXEIE);
 }
@@ -50,18 +57,18 @@ void USART1_IRQHandler(void) {
 
     /// handle interrupt-driven UART transmission
     if ((isrflags & USART_SR_TXE) && (cr1its & USART_CR1_TXEIE)) {
-        if (bytes_left_to_send) {
+        if (comms_data.bytes_left_to_send) {
             /// load next byte to data register
-            uart1_instance.Instance->DR = (*curr_data++ & (uint8_t)0xFF);
-            if (--bytes_left_to_send == 0) {
+            uart1_instance.Instance->DR = (*comms_data.curr_data++ & (uint8_t)0xFF);
+            if (--comms_data.bytes_left_to_send == 0) {
                 /// disable TXE and wait for TC
                 CLEAR_BIT(uart1_instance.Instance->CR1, USART_CR1_TXEIE);
                 SET_BIT(uart1_instance.Instance->CR1, USART_CR1_TCIE);
             }
         }
-    } else if((isrflags & USART_SR_TC) && (cr1its & USART_CR1_TCIE)) {
-        bytes_left_to_send = 0;
-        curr_data = NULL;
+    } else if ((isrflags & USART_SR_TC) && (cr1its & USART_CR1_TCIE)) {
+        comms_data.bytes_left_to_send = 0;
+        comms_data.curr_data = NULL;
         CLEAR_BIT(uart1_instance.Instance->CR1, USART_CR1_TCIE);
     }
 }
