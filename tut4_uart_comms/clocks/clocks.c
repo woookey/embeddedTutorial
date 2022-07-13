@@ -40,8 +40,8 @@ void clocks_initialise(void) {
     __HAL_RCC_GPIOC_CLK_ENABLE();
 
     /// enable clocks for USART1, USART1_TX(PA9) and USART1_RX(PA10)
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_USART2_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_USART1_CLK_ENABLE();
 }
 
 void clocks_system_reset(void) {

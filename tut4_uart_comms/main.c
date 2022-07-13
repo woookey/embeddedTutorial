@@ -23,20 +23,20 @@ static GPIO_InitTypeDef measure_gpio = {
     .Speed = GPIO_SPEED_FREQ_HIGH
 };
 
-static GPIO_InitTypeDef uart2_tx_gpio = {
-    .Pin = GPIO_PIN_2,
+static GPIO_InitTypeDef uart1_tx_gpio = {
+    .Pin = GPIO_PIN_6,
     .Mode = GPIO_MODE_AF_PP,
     .Pull = GPIO_PULLUP,
     .Speed = GPIO_SPEED_FREQ_HIGH,
-    .Alternate = GPIO_AF7_USART2
+    .Alternate = GPIO_AF7_USART1
 };
 
-static GPIO_InitTypeDef uart2_rx_gpio = {
-    .Pin = GPIO_PIN_3,
+static GPIO_InitTypeDef uart1_rx_gpio = {
+    .Pin = GPIO_PIN_7,
     .Mode = GPIO_MODE_AF_PP,
     .Pull = GPIO_PULLUP,
     .Speed = GPIO_SPEED_FREQ_HIGH,
-    .Alternate = GPIO_AF7_USART2
+    .Alternate = GPIO_AF7_USART1
 };
 
 static char msg[] = {"Disco says hello!\r\n"};
@@ -48,8 +48,8 @@ int main(void)
 {
     /// enable PLL, and clock for an LED
     clocks_initialise();
-    HAL_GPIO_Init(GPIOA, &uart2_tx_gpio);
-    HAL_GPIO_Init(GPIOA, &uart2_rx_gpio);
+    HAL_GPIO_Init(GPIOB, &uart1_tx_gpio);
+    HAL_GPIO_Init(GPIOB, &uart1_rx_gpio);
     comms_initialise();
 
     /// initialise relevant GPIOs

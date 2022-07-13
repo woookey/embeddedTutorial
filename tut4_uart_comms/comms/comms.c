@@ -9,7 +9,7 @@
 #include "stm32f4xx_hal_rcc.h"
 #include "stm32f4xx_hal_cortex.h"
 
-static const UART_InitTypeDef uart2_config = {
+static const UART_InitTypeDef uart1_config = {
         .BaudRate = (uint32_t)115200,
         .WordLength = UART_WORDLENGTH_8B,
         .StopBits = UART_STOPBITS_1,
@@ -18,9 +18,9 @@ static const UART_InitTypeDef uart2_config = {
         .OverSampling = UART_OVERSAMPLING_16
 };
 
-static UART_HandleTypeDef uart2_instance = {
-        .Instance = USART2,
-        .Init = uart2_config,
+static UART_HandleTypeDef uart1_instance = {
+        .Instance = USART1,
+        .Init = uart1_config,
 };
 
 static uint8_t bytes_left_to_send = 0;
@@ -28,43 +28,41 @@ static uint8_t* curr_data = NULL;
 
 bool comms_initialise(void) {
     bool init_result;
-    init_result = (bool)HAL_UART_Init(&uart2_instance);
-    //__HAL_UART_ENABLE_IT(&uart2_instance, UART_IT_TXE);
-    //__HAL_UART_ENABLE_IT(&uart2_instance, UART_IT_TC);
-    HAL_NVIC_EnableIRQ(USART2_IRQn);
+    init_result = (bool)HAL_UART_Init(&uart1_instance);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
     return (init_result == HAL_OK);
 }
 
 void comms_send_data(uint8_t* data, uint8_t data_size) {
     curr_data = data;
     bytes_left_to_send = data_size;
-    CLEAR_BIT(uart2_instance.Instance->SR, USART_SR_TC);
-    SET_BIT(uart2_instance.Instance->CR1, USART_CR1_TXEIE);
+    CLEAR_BIT(uart1_instance.Instance->SR, USART_SR_TC);
+    SET_BIT(uart1_instance.Instance->CR1, USART_CR1_TXEIE);
 }
 
 void comms_handle_data(void) {
 
 }
 
-void USART2_IRQHandler(void) {
-    volatile uint32_t isrflags   = READ_REG(uart2_instance.Instance->SR);
-    volatile uint32_t cr1its     = READ_REG(uart2_instance.Instance->CR1);
+void USART1_IRQHandler(void) {
+    volatile uint32_t isrflags   = READ_REG(uart1_instance.Instance->SR);
+    volatile uint32_t cr1its     = READ_REG(uart1_instance.Instance->CR1);
 
     /// handle interrupt-driven UART transmission
     if ((isrflags & USART_SR_TXE) && (cr1its & USART_CR1_TXEIE)) {
         if (bytes_left_to_send) {
             /// load next byte to data register
-            uart2_instance.Instance->DR = (*curr_data++ & (uint8_t)0xFF);
+            uart1_instance.Instance->DR = (*curr_data++ & (uint8_t)0xFF);
             if (--bytes_left_to_send == 0) {
                 /// disable TXE and wait for TC
-                CLEAR_BIT(uart2_instance.Instance->CR1, USART_CR1_TXEIE);
-                SET_BIT(uart2_instance.Instance->CR1, USART_CR1_TCIE);
+                CLEAR_BIT(uart1_instance.Instance->CR1, USART_CR1_TXEIE);
+                SET_BIT(uart1_instance.Instance->CR1, USART_CR1_TCIE);
             }
         }
     } else if((isrflags & USART_SR_TC) && (cr1its & USART_CR1_TCIE)) {
         bytes_left_to_send = 0;
         curr_data = NULL;
-        CLEAR_BIT(uart2_instance.Instance->CR1, USART_CR1_TCIE);
+        CLEAR_BIT(uart1_instance.Instance->CR1, USART_CR1_TCIE);
     }
 }
 
