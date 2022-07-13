@@ -48,9 +48,14 @@ int main(void)
 {
     /// enable PLL, and clock for an LED
     clocks_initialise();
+
+    /// configure uart
     HAL_GPIO_Init(GPIOB, &uart1_tx_gpio);
     HAL_GPIO_Init(GPIOB, &uart1_rx_gpio);
-    comms_initialise();
+    comms_config_t comms_config = {
+        .payload_size = 10
+    };
+    comms_initialise(comms_config);
 
     /// initialise relevant GPIOs
     HAL_GPIO_Init(GPIOD, &led_gpio);
@@ -61,7 +66,6 @@ int main(void)
             /// run all background tasks
             HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
             comms_send_data((uint8_t*)&msg, sizeof(msg));
-            comms_handle_data();
             background_processed = true;
         }
     }
@@ -78,4 +82,13 @@ void SysTick_Handler(void) {
 
 void HardFault_Handler(void) {
     clocks_system_reset();
+}
+
+void comms_error_cb(comms_error_t error) {
+    (void)error;
+}
+
+void comms_handle_data_cb(uint8_t* payload, uint8_t payload_size) {
+    (void)payload;
+    (void)payload_size;
 }
