@@ -107,12 +107,12 @@ void comms_driver_handle_data_cb(uint8_t* payload, uint8_t payload_size) {
         switch (cmd) {
             case CMD_TURN_BLUE_LED_ON: {
                 /// correspond to "XA"
-                HAL_GPIO_TogglePin(GPIOD, led_blue_gpio.Pin);
+                HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_SET);
                 break;
             }
             case CMD_TURN_BLUE_LED_OFF: {
                 /// correspond to "FY"
-                HAL_GPIO_TogglePin(GPIOD, led_blue_gpio.Pin);
+                HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_RESET);
                 break;
             }
         }
