@@ -6,8 +6,10 @@
 
 /// \brief structure to configure comms driver
 /// \param payload_size expected size of incoming payload in bytes
+/// \param baudrate required communication speed in bps
 typedef struct {
     uint8_t payload_size;
+    uint32_t baudrate;
 } comms_driver_config_t;
 
 typedef enum {

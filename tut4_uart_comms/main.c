@@ -51,6 +51,7 @@ static GPIO_InitTypeDef uart1_rx_gpio = {
 
 /// data exchange
 #define INCOMING_PAYLOAD_SIZE (uint8_t)2
+#define COMMS_BAUDRATE (uint32_t)1152000
 #define CMD_TURN_BLUE_LED_ON (uint16_t)0x5841
 #define CMD_TURN_BLUE_LED_OFF (uint16_t)0x4659
 static char msg[] = {"Beep!\r\n"};
@@ -63,7 +64,8 @@ int main(void) {
     HAL_GPIO_Init(GPIOB, &uart1_tx_gpio);
     HAL_GPIO_Init(GPIOB, &uart1_rx_gpio);
     comms_driver_config_t comms_driver_config = {
-        .payload_size = INCOMING_PAYLOAD_SIZE
+        .payload_size = INCOMING_PAYLOAD_SIZE,
+        .baudrate = COMMS_BAUDRATE
     };
     comms_driver_initialise(comms_driver_config);
 
