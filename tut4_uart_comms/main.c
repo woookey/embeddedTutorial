@@ -7,8 +7,7 @@
 #include <string.h>
 
 /// variables and definitions for running tasks
-#define TASKS_FREQUENCY_IN_MS (uint16_t)100
-#define TASKS_FREQUENCY_THRESHOLD (TASKS_FREQUENCY_IN_MS-1)
+#define TASKS_FREQUENCY_IN_MS (uint16_t)10
 volatile uint16_t time_counter = 0;
 volatile bool background_processed = false;
 
@@ -51,7 +50,7 @@ static GPIO_InitTypeDef uart1_rx_gpio = {
 
 /// data exchange
 #define INCOMING_PAYLOAD_SIZE (uint8_t)2
-#define COMMS_BAUDRATE (uint32_t)1152000
+#define COMMS_BAUDRATE (uint32_t)115200
 #define CMD_TURN_BLUE_LED_ON (uint16_t)0x5841
 #define CMD_TURN_BLUE_LED_OFF (uint16_t)0x4659
 static char msg[] = {"Beep!\r\n"};
@@ -75,9 +74,9 @@ int main(void) {
     HAL_GPIO_Init(GPIOD, &led_blue_gpio);
 
     while(1) {
-        if ((time_counter % TASKS_FREQUENCY_IN_MS == 0)
-        & !background_processed) {
+        if (!background_processed) {
             /// run all background tasks at TASKS_FREQUENCY_IN_MS frequency
+            HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
             HAL_GPIO_TogglePin(GPIOD, led_gpio.Pin);
             comms_driver_send_data((uint8_t*)&msg, sizeof(msg));
             background_processed = true;
@@ -87,8 +86,7 @@ int main(void) {
 
 void SysTick_Handler(void) {
     /// toggle C1 to measure SysTick frequency on the scope
-    HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
-    if (time_counter++ == TASKS_FREQUENCY_IN_MS) {
+    if (++time_counter == TASKS_FREQUENCY_IN_MS) {
         time_counter = 0;
         background_processed = false;
     }
