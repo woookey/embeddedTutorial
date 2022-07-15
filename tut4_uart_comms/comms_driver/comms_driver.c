@@ -98,7 +98,7 @@ void USART1_IRQHandler(void) {
         if (comms_driver_data.tx_bytes_left_to_send) {
             /// load next byte to data register
             comms_driver_data.uart_handler.Instance->DR =
-                (*comms_driver_data.tx_curr_data++ & (uint8_t) 0xFF);
+                (uint8_t)(*comms_driver_data.tx_curr_data++ & (uint8_t)0xFF);
             if (--comms_driver_data.tx_bytes_left_to_send == 0) {
                 /// disable TXE and wait for TC
                 CLEAR_BIT(comms_driver_data.uart_handler.Instance->CR1, USART_CR1_TXEIE);
@@ -131,11 +131,25 @@ void USART1_IRQHandler(void) {
             /// report a specific error in a callback
             comms_driver_error_cb(comms_driver_data.error);
             /// clean recent reception related data
+            volatile uint8_t error_byte;
+            error_byte = (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0xFF);
+            (void)error_byte;
         } else {
+            volatile uint8_t debug_byte;
             /// insert new data into the buffer unless it is full
             if (comms_driver_data.rx_buffer_items < comms_driver_data.rx_payload_size) {
-                *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
-                        READ_REG(comms_driver_data.uart_handler.Instance->DR);
+                if (comms_driver_data.uart_handler.Init.Parity == UART_PARITY_NONE) {
+                    *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
+                        (uint8_t)READ_REG(comms_driver_data.uart_handler.Instance->DR);
+                } else if ((comms_driver_data.uart_handler.Init.Parity == UART_PARITY_EVEN)
+                || (comms_driver_data.uart_handler.Init.Parity == UART_PARITY_ODD)) {
+
+                    debug_byte = (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0xFF);
+                    *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) = debug_byte & 0x7F;
+                    //*(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
+                    //    (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0x7F);
+                }
+
                 /// handle incoming payload in a callback when it is full
                 if (++comms_driver_data.rx_buffer_items == comms_driver_data.rx_payload_size) {
                     comms_driver_handle_data_cb(comms_driver_data.rx_buffer, comms_driver_data.rx_payload_size);
