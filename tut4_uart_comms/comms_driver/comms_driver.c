@@ -11,6 +11,9 @@
 
 #include <string.h>
 
+#define BAUDRATE_DEFAULT (uint32_t)115200
+#define RX_MAX_BUFFER_SIZE (uint8_t)20
+
 /// Types definitions
 typedef struct {
     /// transmission data
@@ -22,11 +25,9 @@ typedef struct {
     uint8_t *rx_buffer;
     /// error data
     comms_driver_error_t error;
+    comms_driver_mode_t mode;
     UART_HandleTypeDef uart_handler;
 } comms_driver_t;
-
-#define BAUDRATE_DEFAULT (uint32_t)115200
-#define RX_MAX_BUFFER_SIZE (uint8_t)20
 
 /// Static functions
 static void clean_rx_data(comms_driver_t *comms_driver_object);
@@ -43,6 +44,7 @@ static comms_driver_t comms_driver_data = {
         .rx_buffer = rx_data,
         /// error feedback
         .error = COMMS_DRIVER_ERROR_NONE,
+        .mode = COMMS_DRIVER_MODE_UART_IT,
         /// uart handler definition
         .uart_handler = {
             .Instance = USART1
@@ -58,22 +60,70 @@ static const UART_InitTypeDef uart_config_default = {
     .OverSampling = UART_OVERSAMPLING_16
 };
 
+static DMA_HandleTypeDef comms_dma_handler = {
+    .Instance = DMA2_Stream7,
+    .Init = {
+            .Channel = DMA_CHANNEL_7,
+            .Direction = DMA_MEMORY_TO_PERIPH,
+            .PeriphInc = DMA_PINC_DISABLE,
+            .MemInc = DMA_MINC_ENABLE,
+            .PeriphDataAlignment = DMA_PDATAALIGN_BYTE,
+            .MemDataAlignment = DMA_MDATAALIGN_BYTE,
+            .Mode = DMA_NORMAL,
+            .Priority = DMA_PRIORITY_VERY_HIGH,
+            .FIFOMode = DMA_FIFOMODE_DISABLE,
+            //.FIFOThreshold = ,
+            .MemBurst = DMA_MBURST_SINGLE,
+            .PeriphBurst = DMA_PBURST_SINGLE,
+    }
+};
+
 bool comms_driver_initialise(comms_driver_config_t config) {
     bool init_result;
-    /// default values
+    /// setup UART config
     static UART_InitTypeDef uart_config;
     uart_config = uart_config_default;
     uart_config.BaudRate = config.baudrate;
+    switch(config.parity) {
+        case COMMS_DRIVER_PARITY_NONE: {
+            uart_config.Parity = UART_PARITY_NONE;
+            break;
+        }
+        case COMMS_DRIVER_PARITY_EVEN: {
+            uart_config.Parity = UART_PARITY_EVEN;
+            break;
+        }
+        case COMMS_DRIVER_PARITY_ODD: {
+            uart_config.Parity = UART_PARITY_ODD;
+            break;
+        }
+    }
 
     /// prepare comms_driver data
     memset(rx_data, 0, sizeof(uint8_t) * RX_MAX_BUFFER_SIZE);
     comms_driver_data.rx_payload_size = config.payload_size;
     comms_driver_data.uart_handler.Init = uart_config;
+    comms_driver_data.mode = config.mode;
 
     /// initialise UART
-    init_result = (bool) HAL_UART_Init(&comms_driver_data.uart_handler);
-    SET_BIT(comms_driver_data.uart_handler.Instance->CR1, USART_CR1_RXNEIE);
-    HAL_NVIC_EnableIRQ(USART1_IRQn);
+    init_result = (bool)HAL_UART_Init(&comms_driver_data.uart_handler);
+
+    /// setup configuration depending on the operation mode (UART IT or DMA IT)
+    if (config.mode == COMMS_DRIVER_MODE_UART_IT) {
+        SET_BIT(comms_driver_data.uart_handler.Instance->CR1, USART_CR1_RXNEIE);
+        HAL_NVIC_EnableIRQ(USART1_IRQn);
+    } else if (config.mode == COMMS_DRIVER_MODE_DMA_IT) {
+/*        (+++) Declare a DMA handle structure for the Tx/Rx stream.
+                (+++) Enable the DMAx interface clock.
+                (+++) Configure the declared DMA handle structure with the required
+        Tx/Rx parameters.
+                (+++) Configure the DMA Tx/Rx Stream.
+                (+++) Associate the initialized DMA handle to the UART DMA Tx/Rx handle.
+                (+++) Configure the priority and enable the NVIC for the transfer complete
+        interrupt on the DMA Tx/Rx Stream.*/
+        HAL_DMA_Init(&comms_dma_handler);
+        HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+    }
     return (init_result == HAL_OK);
 }
 
@@ -82,10 +132,19 @@ void comms_driver_send_data(uint8_t *data, uint8_t data_size) {
     if (comms_driver_data.tx_bytes_left_to_send) {
         comms_driver_error_cb(COMMS_DRIVER_ERROR_TX_BUSY);
     } else {
-        comms_driver_data.tx_curr_data = data;
-        comms_driver_data.tx_bytes_left_to_send = data_size;
-        CLEAR_BIT(comms_driver_data.uart_handler.Instance->SR, USART_SR_TC);
-        SET_BIT(comms_driver_data.uart_handler.Instance->CR1, USART_CR1_TXEIE);
+        if (comms_driver_data.mode == COMMS_DRIVER_MODE_UART_IT) {
+            /// transmission with UART interrupts
+            comms_driver_data.tx_curr_data = data;
+            comms_driver_data.tx_bytes_left_to_send = data_size;
+            CLEAR_BIT(comms_driver_data.uart_handler.Instance->SR, USART_SR_TC);
+            SET_BIT(comms_driver_data.uart_handler.Instance->CR1, USART_CR1_TXEIE);
+        } else if (comms_driver_data.mode == COMMS_DRIVER_MODE_DMA_IT) {
+            /// transmission with DMA interrupts
+            //tmp = (uint32_t*)&pData;
+            //HAL_DMA_Start_IT(huart->hdmatx, *(uint32_t*)tmp, (uint32_t)&huart->Instance->DR, Size);
+            CLEAR_BIT(comms_driver_data.uart_handler.Instance->SR, USART_SR_TC);
+            SET_BIT(comms_driver_data.uart_handler.Instance->CR3, USART_CR3_DMAT);
+        }
     }
 }
 
@@ -131,23 +190,19 @@ void USART1_IRQHandler(void) {
             /// report a specific error in a callback
             comms_driver_error_cb(comms_driver_data.error);
             /// clean recent reception related data
-            volatile uint8_t error_byte;
-            error_byte = (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0xFF);
-            (void)error_byte;
+            (void)READ_REG(comms_driver_data.uart_handler.Instance->DR);
         } else {
-            volatile uint8_t debug_byte;
             /// insert new data into the buffer unless it is full
             if (comms_driver_data.rx_buffer_items < comms_driver_data.rx_payload_size) {
                 if (comms_driver_data.uart_handler.Init.Parity == UART_PARITY_NONE) {
+                    /// get the full 8-bit data register when parity is none
                     *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
                         (uint8_t)READ_REG(comms_driver_data.uart_handler.Instance->DR);
                 } else if ((comms_driver_data.uart_handler.Init.Parity == UART_PARITY_EVEN)
                 || (comms_driver_data.uart_handler.Init.Parity == UART_PARITY_ODD)) {
-
-                    debug_byte = (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0xFF);
-                    *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) = debug_byte & 0x7F;
-                    //*(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
-                    //    (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR) & (uint8_t)0x7F);
+                    /// get the 7 lsbs if parity is odd or even
+                    *(comms_driver_data.rx_buffer + comms_driver_data.rx_buffer_items) =
+                            (uint8_t)(READ_REG(comms_driver_data.uart_handler.Instance->DR)) & 0x7F;
                 }
 
                 /// handle incoming payload in a callback when it is full
@@ -158,6 +213,10 @@ void USART1_IRQHandler(void) {
             }
         }
     }
+}
+
+void DMA2_Stream7_IRQHandler() {
+
 }
 
 inline void clean_rx_data(comms_driver_t *comms_object) {
