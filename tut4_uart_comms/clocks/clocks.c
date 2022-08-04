@@ -38,14 +38,6 @@ void clocks_initialise(void) {
 
     /// enable Port C (for GPIO C1 - measuring SysTick)
     __HAL_RCC_GPIOC_CLK_ENABLE();
-
-    /// enable clocks for USART1, USART1_TX(PA9) and USART1_RX(PA10)
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_USART1_CLK_ENABLE();
-
-    /// enable DMA2
-    __HAL_RCC_DMA2_CLK_ENABLE();
-
 }
 
 void clocks_system_reset(void) {

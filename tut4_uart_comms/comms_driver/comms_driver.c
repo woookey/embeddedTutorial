@@ -1,13 +1,10 @@
 #include "comms_driver.h"
 
-//#include "stm32f407xx.h"
-//#include "stm32f4xx_ll_usart.h"
-
 #include "stm32f4xx_hal_dma.h"
 #include "stm32f4xx_hal_uart.h"
-
-//#include "stm32f4xx_hal_rcc.h"
+#include "stm32f4xx_hal_rcc.h"
 #include "stm32f4xx_hal_cortex.h"
+#include "stm32f4xx_hal.h"
 
 #include <string.h>
 
@@ -94,8 +91,35 @@ static DMA_HandleTypeDef comms_dma_rx_handle = {
     }
 };
 
+static GPIO_InitTypeDef uart1_tx_gpio = {
+        .Pin = GPIO_PIN_6,
+        .Mode = GPIO_MODE_AF_PP,
+        .Pull = GPIO_PULLUP,
+        .Speed = GPIO_SPEED_FREQ_HIGH,
+        .Alternate = GPIO_AF7_USART1
+};
+
+static GPIO_InitTypeDef uart1_rx_gpio = {
+        .Pin = GPIO_PIN_7,
+        .Mode = GPIO_MODE_AF_PP,
+        .Pull = GPIO_PULLUP,
+        .Speed = GPIO_SPEED_FREQ_HIGH,
+        .Alternate = GPIO_AF7_USART1
+};
+
 bool comms_driver_initialise(comms_driver_config_t config) {
     bool init_result;
+
+    /// hardware setup
+    /// clock for USART1, USART1_TX(PB6) and USART1_RX(PB7)
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_USART1_CLK_ENABLE();
+    /// clock for DMA2
+    __HAL_RCC_DMA2_CLK_ENABLE();
+    /// initialise TX & RX GPIOs
+    HAL_GPIO_Init(GPIOB, &uart1_tx_gpio);
+    HAL_GPIO_Init(GPIOB, &uart1_rx_gpio);
+
     /// setup UART config
     static UART_InitTypeDef uart_config;
     uart_config = uart_config_default;
