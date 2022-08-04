@@ -10,6 +10,7 @@ LFLAGS =  -L../Linker -TSTM32F407VGTx_FLASH.ld
 INC = -I../CMSIS/Device/ST/STM32F4xx/Include
 INC += -I../CMSIS/Include
 INC += -I../STM32F4xx_HAL_Driver/Inc/
+INC += -I./
 
 DEPENDENCIES_PART1 = main_part1.o
 DEPENDENCIES_PART1 += startup_stm32f407xx.o
@@ -30,6 +31,8 @@ DEPENDENCIES_PART2 += startup_stm32f407xx.o
 DEPENDENCIES_PART2 += system_stm32f4xx.o
 DEPENDENCIES_PART2 += clocks/clocks.o
 DEPENDENCIES_PART2 += comms_driver/comms_driver.o
+DEPENDENCIES_PART2 += comms/comms.o
+DEPENDENCIES_PART2 += comms/comms_cmd.o
 DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
 DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o

@@ -1,5 +1,5 @@
 #include "clocks/clocks.h"
-#include "comms_driver/comms_driver.h"
+#include "comms/comms.h"
 #include "stm32f4xx_hal.h"
 
 #include <stdbool.h>
@@ -32,25 +32,11 @@ static GPIO_InitTypeDef measure_gpio = {
     .Speed = GPIO_SPEED_FREQ_HIGH
 };
 
-/// data exchange
-#define INCOMING_PAYLOAD_SIZE (uint8_t)2
-#define COMMS_BAUDRATE (uint32_t)115200
-#define CMD_TURN_BLUE_LED_ON (uint16_t)0x5841
-#define CMD_TURN_BLUE_LED_OFF (uint16_t)0x4659
-static char msg[] = {"Beep!\r\n"};
-
 int main(void) {
     /// enable PLL, and clock for an LED
     clocks_initialise();
 
-    /// configure comms driver
-    comms_driver_config_t comms_driver_config = {
-        .payload_size = INCOMING_PAYLOAD_SIZE,
-        .baudrate = COMMS_BAUDRATE,
-        .parity = COMMS_DRIVER_PARITY_ODD,
-        .mode = COMMS_DRIVER_MODE_DMA_IT,
-    };
-    comms_driver_initialise(comms_driver_config);
+    comms_init();
 
     /// initialise relevant GPIOs
     HAL_GPIO_Init(GPIOD, &led_blinky_gpio);
@@ -62,7 +48,7 @@ int main(void) {
             /// run all background tasks at TASKS_FREQUENCY_IN_MS frequency
             HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
             HAL_GPIO_TogglePin(GPIOD, led_blinky_gpio.Pin);
-            comms_driver_send_data((uint8_t*)&msg, sizeof(msg));
+            comms_handle();
             background_processed = true;
         }
     }
@@ -80,25 +66,19 @@ void HardFault_Handler(void) {
     clocks_system_reset();
 }
 
-void comms_driver_error_cb(comms_driver_error_t error) {
-    (void)error;
-}
-
-void comms_driver_handle_data_cb(uint8_t* payload, uint8_t payload_size) {
-    static uint16_t cmd;
-    if (payload_size == INCOMING_PAYLOAD_SIZE) {
-        cmd = ((payload[0] << 8) | payload[1]);
-        switch (cmd) {
-            case CMD_TURN_BLUE_LED_ON: {
-                /// correspond to "XA"
-                HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_SET);
-                break;
-            }
-            case CMD_TURN_BLUE_LED_OFF: {
-                /// correspond to "FY"
-                HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_RESET);
-                break;
-            }
+void comms_process_cmd(comms_cmd_t* current_cmd) {
+    /// assert to check for non-null
+    switch(current_cmd->id) {
+        case COMMS_CMD_TURN_LED_ON: {
+            HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_SET);
+            break;
+        }
+        case COMMS_CMD_TURN_LED_OFF: {
+            HAL_GPIO_WritePin(GPIOD, led_blue_gpio.Pin, GPIO_PIN_RESET);
+            break;
+        }
+        default: {
+            /// unhandled
         }
     }
 }
