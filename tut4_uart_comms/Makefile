@@ -11,24 +11,43 @@ INC = -I../CMSIS/Device/ST/STM32F4xx/Include
 INC += -I../CMSIS/Include
 INC += -I../STM32F4xx_HAL_Driver/Inc/
 
-DEPENDENCIES = main.o 
-DEPENDENCIES += startup_stm32f407xx.o
-DEPENDENCIES += system_stm32f4xx.o
-DEPENDENCIES += clocks/clocks.o
-DEPENDENCIES += comms_driver/comms_driver.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
-#DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usart.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_rcc.o
-DEPENDENCIES += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
+DEPENDENCIES_PART1 = main_part1.o
+DEPENDENCIES_PART1 += startup_stm32f407xx.o
+DEPENDENCIES_PART1 += system_stm32f4xx.o
+DEPENDENCIES_PART1 += clocks/clocks.o
+DEPENDENCIES_PART1 += comms_driver/comms_driver.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usart.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_rcc.o
+DEPENDENCIES_PART1 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
 
-all: $(DEPENDENCIES)
-	$(CC) $(CFLAGS) $(DEPENDENCIES) $(INC) $(LFLAGS) -o $(TARGET).axf;
-	$(OBJCOPY) -O binary $(TARGET).axf $(TARGET).bin
+DEPENDENCIES_PART2 = main_part2.o
+DEPENDENCIES_PART2 += startup_stm32f407xx.o
+DEPENDENCIES_PART2 += system_stm32f4xx.o
+DEPENDENCIES_PART2 += clocks/clocks.o
+DEPENDENCIES_PART2 += comms_driver/comms_driver.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usart.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_rcc.o
+DEPENDENCIES_PART2 += ../STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
+
+all: tut4_part1 tut4_part2
+
+tut4_part1: $(DEPENDENCIES_PART1)
+	$(CC) $(CFLAGS) $(DEPENDENCIES_PART1) $(INC) $(LFLAGS) -o $(TARGET)_part1.axf;
+	$(OBJCOPY) -O binary $(TARGET)_part1.axf $(TARGET)_part1.bin
+
+tut4_part2: $(DEPENDENCIES_PART2)
+	$(CC) $(CFLAGS) $(DEPENDENCIES_PART2) $(INC) $(LFLAGS) -o $(TARGET)_part2.axf;
+	$(OBJCOPY) -O binary $(TARGET)_part2.axf $(TARGET)_part2.bin
 
 %.o : %.c
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
@@ -36,26 +55,11 @@ all: $(DEPENDENCIES)
 %.o : %.s
 	$(AS) $(INC) -c $< -o $@
 	
-stlink_texane_reflash:
-	st-flash write $(TARGET).bin 0x8000000
+stlink_texane_reflash_part1:
+	st-flash write $(TARGET)_part1.bin 0x8000000
 
-stlink_v2_connect:
-	openocd --file $(shell pwd)/../tools/stlink-v2-swd.cfg
-
-stlink_v2_reflash:
-	openocd --file $(shell pwd)/../tools/stlink-v2-swd.cfg -c "program tut4.bin 0x08000000 exit"
-
-stlink_v2_1_connect:
-	openocd --file $(shell pwd)/../tools/stlink-v2-1-swd.cfg
-
-stlink_v2_1_reflash:
-	openocd --file $(shell pwd)/../tools/stlink-v2-1-swd.cfg -c "program tut4.bin 0x08000000 exit"
-
-olimex_connect:
-	openocd --file $(shell pwd)/../tools/olimex-jtag.cfg
-
-olimex_reflash:
-	openocd --file $(shell pwd)/../tools/olimex-jtag.cfg -c "program tut4.bin 0x08000000 exit"
+stlink_texane_reflash_part2:
+	st-flash write $(TARGET)_part2.bin 0x8000000
 
 clean:
 	rm -f *.axf *.bin
