@@ -54,7 +54,6 @@ static GPIO_InitTypeDef uart1_rx_gpio = {
 #define CMD_TURN_BLUE_LED_ON (uint16_t)0x5841
 #define CMD_TURN_BLUE_LED_OFF (uint16_t)0x4659
 static char msg[] = {"Beep!\r\n"};
-///static char msg[] = {"B"};
 
 int main(void) {
     /// enable PLL, and clock for an LED
@@ -67,7 +66,7 @@ int main(void) {
         .payload_size = INCOMING_PAYLOAD_SIZE,
         .baudrate = COMMS_BAUDRATE,
         .parity = COMMS_DRIVER_PARITY_ODD,
-        .mode = COMMS_DRIVER_MODE_UART_IT,
+        .mode = COMMS_DRIVER_MODE_DMA_IT,
     };
     comms_driver_initialise(comms_driver_config);
 
