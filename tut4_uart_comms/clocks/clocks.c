@@ -36,6 +36,9 @@ void clocks_initialise(void) {
     /// enable Port D (for GPIO D12 - LED)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
+    /// enable Port A (for switch), only used for tut4-part2
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
     /// enable Port C (for GPIO C1 - measuring SysTick)
     __HAL_RCC_GPIOC_CLK_ENABLE();
 }
