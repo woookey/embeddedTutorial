@@ -20,10 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef TUT3_CLOCKS_H
-#define TUT3_CLOCKS_H
+#ifndef TUT4_COMMS_COMMAND_H
+#define TUT4_COMMS_COMMAND_H
 
-void clocks_initialise(void);
-void clocks_system_reset(void);
+#include <stdint.h>
+
+typedef enum {
+    COMMS_CMD_TURN_LED_ON = 0U,
+    COMMS_CMD_TURN_LED_OFF,
+    COMMS_CMD_INVALID,
+} comms_cmd_id_t;
+
+typedef struct {
+    comms_cmd_id_t id;
+} comms_cmd_t;
+
+comms_cmd_t comms_get_cmd(uint8_t* buffer, uint8_t size);
 
 #endif

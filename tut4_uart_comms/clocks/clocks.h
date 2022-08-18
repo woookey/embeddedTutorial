@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef TUT3_CLOCKS_H
-#define TUT3_CLOCKS_H
+#ifndef TUT4_CLOCKS_H
+#define TUT4_CLOCKS_H
 
 void clocks_initialise(void);
 void clocks_system_reset(void);

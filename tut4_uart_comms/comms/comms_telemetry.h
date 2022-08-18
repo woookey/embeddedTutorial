@@ -20,10 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef TUT3_CLOCKS_H
-#define TUT3_CLOCKS_H
+#ifndef TUT4_COMMS_TELEMETRY_H
+#define TUT4_COMMS_TELEMETRY_H
 
-void clocks_initialise(void);
-void clocks_system_reset(void);
+#include <stdint.h>
+
+#define TELEMETRY_UID (uint16_t)0x2A
+
+typedef struct __attribute__((packed)) {
+    uint8_t uid;
+    uint32_t cookie;
+    uint8_t switch_on;
+} telemetry_t;
+
+void comms_update_telemetry(telemetry_t new_telemetry);
 
 #endif
