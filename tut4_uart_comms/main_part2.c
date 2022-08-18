@@ -1,10 +1,14 @@
 #include "clocks/clocks.h"
 #include "comms/comms.h"
+#include "comms/comms_telemetry.h"
+
 #include "stm32f4xx_hal.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
+
+static void telemetry_update(void);
 
 /// variables and definitions for running tasks
 #define TASKS_FREQUENCY_IN_MS (uint16_t)10
@@ -21,6 +25,13 @@ static GPIO_InitTypeDef led_blinky_gpio = {
 static GPIO_InitTypeDef led_blue_gpio = {
         .Pin = GPIO_PIN_15,
         .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_FREQ_HIGH
+};
+
+static GPIO_InitTypeDef user_button = {
+        .Pin = GPIO_PIN_0,
+        .Mode = GPIO_MODE_INPUT,
         .Pull = GPIO_PULLDOWN,
         .Speed = GPIO_SPEED_FREQ_HIGH
 };
@@ -42,12 +53,14 @@ int main(void) {
     HAL_GPIO_Init(GPIOD, &led_blinky_gpio);
     HAL_GPIO_Init(GPIOC, &measure_gpio);
     HAL_GPIO_Init(GPIOD, &led_blue_gpio);
+    HAL_GPIO_Init(GPIOA, &user_button);
 
     while(1) {
         if (!background_processed) {
             /// run all background tasks at TASKS_FREQUENCY_IN_MS frequency
             HAL_GPIO_TogglePin(GPIOC, measure_gpio.Pin);
             HAL_GPIO_TogglePin(GPIOD, led_blinky_gpio.Pin);
+            telemetry_update();
             comms_handle();
             background_processed = true;
         }
@@ -81,4 +94,12 @@ void comms_process_cmd(comms_cmd_t* current_cmd) {
             /// unhandled
         }
     }
+}
+
+void telemetry_update(void) {
+    static telemetry_t data;
+    data.uid = TELEMETRY_UID;
+    data.cookie++;
+    data.switch_on = (uint8_t)HAL_GPIO_ReadPin(GPIOA, user_button.Pin);
+    comms_update_telemetry(data);
 }
