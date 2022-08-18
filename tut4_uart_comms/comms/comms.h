@@ -1,7 +1,7 @@
 #ifndef TUT4_COMMS_H
 #define TUT4_COMMS_H
 
-#include "comms_cmd.h"
+#include "comms_command.h"
 
 /// \brief initialise communication stack
 void comms_init(void);

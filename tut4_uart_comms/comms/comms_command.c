@@ -1,4 +1,4 @@
-#include "comms_cmd.h"
+#include "comms_command.h"
 
 /// CMD_TURN_BLUE_LED_ON  = "XA"
 /// CMD_TURN_BLUE_LED_OFF = "FY"
@@ -7,11 +7,12 @@
 
 /// 16-bit command construction:
 /// CMD_BYTE_0 (MSB) | CMD_BYTE_1 (LSB)
+#define CMD_LENGTH 2U
 #define CMD_BYTE_0 0U
 #define CMD_BYTE_1 1U
 
 comms_cmd_t comms_get_cmd(uint8_t* buffer, uint8_t size) {
-    /// should be an assert here
+    /// \todo add an assert here for size
     comms_cmd_t new_cmd;
     static uint16_t cmd_raw;
     cmd_raw = ((uint16_t)buffer[0] << 8 | buffer[1]);

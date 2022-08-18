@@ -1,5 +1,5 @@
-#ifndef TUT4_COMMS_CMD_H
-#define TUT4_COMMS_CMD_H
+#ifndef TUT4_COMMS_COMMAND_H
+#define TUT4_COMMS_COMMAND_H
 
 #include <stdint.h>
 
